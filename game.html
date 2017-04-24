@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang='pl'>
+<head>
+  <meta charset="utf-8" />
+  <title>PONG</title>
+  <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
+  <style type="text/css"></style>
+  </style>
+</head>
+<body>
+
+<p>Prosty przykład gry w HTML5</p>
+<canvas id="game" width='640' height='240'>
+Nie posiadasz przeglądarki z obsługą HTML5.<br>
+Aby zagrać w grę polecamy instalację przeglądarki Google Chrome:<br>
+<a href="www.google.pl/chroome/browser/desktop" class="return-button">Zainstaluj Chrome</a>
+</canvas>
+
+</body>
+</html>
+
+
+
+<script>
+
+window.addEventListener("keydown",inputHandler,true);
+
+var started = false;
+
+var canv= document.getElementById("game");
+var cont = canv.getContext("2d");
+
+var width =  canv.getAttribute("width");
+var height = canv.getAttribute("height");
+
+var usr_score = 0;
+var cmp_score = 0;
+
+setScoreTexts();
+
+var pad_width = 60;
+
+var ball_size = 10;
+var ball_x = (width - ball_size)/2;
+var ball_y = (height - ball_size)/2;
+
+var usr_y = (height - pad_width)/2;
+var cmp_y = usr_y;
+
+var usr_speed = 8;
+var cmp_speed = 2;
+var ball_x_speed = 3;
+var ball_y_speed = 3;
+
+cont.font = "10px Impact, Charcoal; sans-serif";
+
+cont.textAlign = "center";
+
+
+
+setInterval(gameLogic,15);
+
+function gameLogic()
+{
+if(started)
+{
+if(usr_score<10 && cmp_score<10)
+{
+
+	padLogic();
+	ballLogic();
+	opponentLogic();
+	draw();
+}
+else
+{
+
+if(usr_score>=10)
+{
+gameOver("Gratulacje!", "Wygrales");
+}
+else
+{
+gameOver("Niestety!", "Przeładuj stronę i spróbuj ponownie");
+
+}
+
+}
+
+}
+else
+{
+gameOver("PONG","Używając klawiszy W i S przesuwaj paletkę, żeby odbic pilke na strone przeciwnika. Nacisnij dowolny przycisk, żeby zacząć grę");
+}
+
+
+}
+
+function opponentLogic()
+{
+if(ball_y> (cmp_y + pad_width/2))
+{
+cmp_y+= cmp_speed;
+}
+if(ball_y<(cmp_y + pad_width/2))
+{
+cmp_y -= cmp_speed;
+}
+}
+
+
+function padLogic()
+{
+
+if(usr_y < 0)
+{
+usr_y=0;
+}
+if(usr_y > height - pad_width)
+{
+usr_y = height - pad_width;
+}
+
+
+
+if(cmp_y < 0)
+{
+cmp_y=0;
+}
+if(cmp_y > height - pad_width)
+{
+cmp_y = height - pad_width;
+}
+
+}
+
+
+function ballLogic()
+{
+	ball_x += ball_x_speed;
+	ball_y += ball_y_speed;
+	if(ball_y<0)
+	{
+		ball_y=0;
+		ball_y_speed = -1*ball_y_speed;
+	}
+	if(ball_y>height-ball_size)
+	{
+		ball_y=height-ball_size;
+		ball_y_speed = -1*ball_y_speed;
+	}
+
+	if(ball_x <= 0)
+	{
+		ball_x_speed *= -1;
+		ball_x = (width-ball_size)/2;
+		ball_y = (height-ball_size)/2;
+		cmp_score +=1;
+		setScoreTexts();	
+	}
+
+	if(ball_x > width)
+	{
+		ball_x_speed *= -1;
+		ball_x = (width-ball_size)/2;
+		ball_y = (height-ball_size)/2;
+		
+		usr_score +=1;
+		setScoreTexts();	
+	}
+
+	// kolizje z paletnkami
+	
+	if(ball_x >ball_size && ball_x< 2*ball_size && ball_y>usr_y && ball_y < usr_y + pad_width)
+	{
+	ball_x = 2*ball_size;
+	ball_x_speed *= -1;
+	}
+
+	if(ball_x <width-ball_size && ball_x> width - 2*ball_size && ball_y < cmp_y + pad_width && ball_y>cmp_y)
+	{
+	ball_x = width-2*ball_size;
+	ball_x_speed *= -1;
+	}
+
+
+}
+
+
+function setScoreTexts()
+{
+ usr_text =  "Twój wynik: ".concat(usr_score);
+ cmp_text =  "Wynik komputera: ".concat(cmp_score);
+
+}
+
+function inputHandler(key)
+{
+	started=true;
+	switch(key.keyCode)
+	{
+	case 87:
+		usr_y -=usr_speed;
+		break;
+	case 83:
+		usr_y +=usr_speed;
+		break;
+	default:
+		break;
+	}
+	return;
+}
+
+
+function gameOver(title,comment)
+{
+
+cont.fillStyle = "rgba(0,0,0,1)";
+
+cont.fillRect(0,0,width,height);
+
+
+cont.fillStyle = "rgba(0,255,0,1)";
+
+cont.font = "20px Impact, Charcoal; sans-serif";
+
+cont.fillText(title, width/2, height/4);
+cont.font = "10px Impact, Charcoal; sans-serif";
+
+cont.fillText(comment, width/2, height/2);
+cont.fill();
+
+}
+
+function draw()
+{
+cont.fillStyle = "rgba(0,0,0,0.8)";
+
+cont.fillRect(0,0,width,height);
+
+cont.fillStyle ="white";
+
+
+cont.fillRect(ball_size, usr_y, ball_size, pad_width);
+cont.fillRect(width-2*ball_size, cmp_y, ball_size, pad_width);
+
+cont.fillRect(ball_x,ball_y,ball_size,ball_size);
+
+cont.fillText(usr_text, width/4, height/8);
+
+cont.fillText(cmp_text, 3*width/4, height/8);
+
+cont.fill();
+
+
+}
+
+</script>
