@@ -23,7 +23,12 @@ Aby zagrać w grę polecamy instalację przeglądarki Google Chrome:<br>
 
 <script>
 
-window.addEventListener("keydown",inputHandler,true);
+// sound effect for bouncing
+var beep = new Audio("beep.wav");
+
+
+window.addEventListener("keydown",pressedHandler,true);
+window.addEventListener("keyup",releasedHandler,true);
 
 var started = false;
 
@@ -36,6 +41,9 @@ var height = canv.getAttribute("height");
 var usr_score = 0;
 var cmp_score = 0;
 
+var go_up = false;
+var go_down = false;
+
 setScoreTexts();
 
 var pad_width = 60;
@@ -47,8 +55,8 @@ var ball_y = (height - ball_size)/2;
 var usr_y = (height - pad_width)/2;
 var cmp_y = usr_y;
 
-var usr_speed = 8;
-var cmp_speed = 2;
+var usr_speed = 5;
+var cmp_speed = 2.2;
 var ball_x_speed = 3;
 var ball_y_speed = 3;
 
@@ -67,9 +75,10 @@ if(started)
 if(usr_score<10 && cmp_score<10)
 {
 
+	playerLogic();
+	opponentLogic();
 	padLogic();
 	ballLogic();
-	opponentLogic();
 	draw();
 }
 else
@@ -93,8 +102,14 @@ else
 gameOver("PONG","Używając klawiszy W i S przesuwaj paletkę, żeby odbic pilke na strone przeciwnika. Nacisnij dowolny przycisk, żeby zacząć grę");
 }
 
-
 }
+
+function playerLogic()
+{
+if (go_up)usr_y -=usr_speed;
+if (go_down) usr_y += usr_speed;
+}
+
 
 function opponentLogic()
 {
@@ -175,12 +190,14 @@ function ballLogic()
 	{
 	ball_x = 2*ball_size;
 	ball_x_speed *= -1;
+	beep.play();
 	}
 
 	if(ball_x <width-ball_size && ball_x> width - 2*ball_size && ball_y < cmp_y + pad_width && ball_y>cmp_y)
 	{
 	ball_x = width-2*ball_size;
 	ball_x_speed *= -1;
+	beep.play();
 	}
 
 
@@ -194,16 +211,37 @@ function setScoreTexts()
 
 }
 
-function inputHandler(key)
+function pressedHandler(key)
 {
 	started=true;
 	switch(key.keyCode)
 	{
 	case 87:
-		usr_y -=usr_speed;
+		go_up = true;
+		go_down = false;
+		
 		break;
 	case 83:
-		usr_y +=usr_speed;
+		go_up = false;
+		go_down = true;
+		break;
+	default:
+		break;
+	}
+	return;
+}
+
+function releasedHandler(key)
+{
+	started=true;
+	switch(key.keyCode)
+	{
+	case 87:
+		go_up = false;
+		
+		break;
+	case 83:
+		go_down = false;
 		break;
 	default:
 		break;
